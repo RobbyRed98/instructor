@@ -3,10 +3,10 @@
 SCOPE="$PWD"
 INSTRUCTIONS_FILE=~/.instructions
 PARAMETER=$1
-VERBOSE=1
+VERBOSE=0
 
 function error() {
-    echo "ERROR: $1"
+    echo "Error: $1"
 }
 
 function verbose() {

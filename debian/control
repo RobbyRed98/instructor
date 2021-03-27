@@ -1,0 +1,13 @@
+Source: instructor
+Section: universe
+Priority: optional
+Maintainer: RobbyRed98 <r.roth@mail.de>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.0
+Vcs-Git: https://github.com/RobbyRed98/instructor.git
+Vcs-Browser: https://github.com/RobbyRed98/instructor
+
+Package: instructor
+Architecture: all
+Depends: ${misc:Depends}, bash (>=4.4.18), sed (>=4.4), grep (>=3.1)
+Description: Handels basic scope-based shortcuts for commands.

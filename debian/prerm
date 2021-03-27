@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+scripts_to_link=(instructor ins)
+
+echo "Removing links..."
+
+for script in ${scripts_to_link[@]}; do
+    if [ -f /usr/bin/$script ]; then 
+        rm /usr/bin/$script
+    fi
+done
+
+echo "Successfully removed links."
+
+#DEBHELPER#
+
+exit 0

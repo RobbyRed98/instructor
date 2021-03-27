@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+echo "Creating links..."
+
+scripts_to_link=(instructor)
+
+ln -s /usr/share/instructor/instructor.sh /usr/bin/ins
+ln -s /usr/share/instructor/instructor.sh /usr/bin/instructor
+
+echo "Successfully created links."
+
+#DEBHELPER#
+
+exit 0

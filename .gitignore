@@ -1,0 +1,5 @@
+instructor-*
+instructor_*
+
+doc/*.1
+doc/*.1.gz
