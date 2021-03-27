@@ -34,6 +34,24 @@ function sed-escape() {
     echo $(echo "$text" | sed "s|/|\\\/|g")
 }
 
+function help() {
+    echo "Usage: 
+instructor <command> <args>
+ins <command> <args>
+
+Allows the creation and usage of scope-bound shell shortcuts.
+
+<shortcut>      Executes a created shortcut.
+add             Creates a scope-bound shortcut for a shell command.
+mv              Renames a shortcut.
+rename          Also renames a shortcut.
+rm              Removes a shortcut.
+list            Lists all existing shortcuts.
+reorganize      Reorganizes the file in which the shortcuts and commands are stored.
+
+help            Prints this help text."
+}
+
 function list() {
     echo "Scope | Label -> Instruction"
     cat $INSTRUCTIONS_FILE | sort | sed "s/|/ | /g" | sed "s/->/ -> /g"
@@ -153,8 +171,7 @@ case $1 in
     ;;
 
   help)
-    verbose "help"
-    verbose "not yet implemented"
+    help    
     ;;
 
   *)

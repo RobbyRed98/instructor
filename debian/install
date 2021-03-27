@@ -1,1 +1,2 @@
 instructor.sh usr/share/instructor
+*.1.gz usr/share/man/man1
