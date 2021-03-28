@@ -10,4 +10,10 @@ Vcs-Browser: https://github.com/RobbyRed98/instructor
 Package: instructor
 Architecture: all
 Depends: ${misc:Depends}, bash (>=4.4.18), sed (>=4.4), grep (>=3.1)
-Description: Handels basic scope-based shortcuts for commands.
+Description: A cli-tool to create shortcuts for specific shell comands. 
+    The commands are scope based. A scope is represented by a directory. 
+    Currently the usage of the parent directory scope is not supported in 
+    a sub-directory. The tool allows to create, use, list, remove, rename 
+    and reorganize the shortcuts.
+
+

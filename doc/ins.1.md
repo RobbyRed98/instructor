@@ -15,7 +15,7 @@ instructor - a small cli-tool to add scope bound shortcuts for regular tasks/com
 
 A cli-tool to create shortcuts for specific shell comands. The commands are scope based. A scope is represented by a directory. Currently the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename and reorganize the shortcuts.
 
-# Commands
+# COMMANDS
 
 **ins** <shortcut>
 : Executes the command of the shortcut.

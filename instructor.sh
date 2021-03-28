@@ -53,6 +53,9 @@ help            Prints this help text."
 }
 
 function list() {
+    if [[ -z $INSTRUCTIONS_FILE ]]; then
+        verbose "No instruction file exists."
+    fi
     echo "Scope | Label -> Instruction"
     cat $INSTRUCTIONS_FILE | sort | sed "s/|/ | /g" | sed "s/->/ -> /g"
 }
@@ -79,7 +82,7 @@ function add() {
     fi
 
     echo "$SCOPE|$label->$instruction" >> $INSTRUCTIONS_FILE
-    exit 0
+
 }
 
 function remove() {
@@ -99,8 +102,6 @@ function remove() {
     fi
 
     sed -i "/^$(sed-escape $scope)|$(sed-escape $label)->/d" $INSTRUCTIONS_FILE
-
-    exit 0
 }
 
 function rename() {
@@ -116,14 +117,14 @@ function rename() {
     if [[ $? -eq 0 ]]; then
         error "Cannot rename \"$scope|$current_label\" label-scope combination."
         error "Because the combination does not exist!"
-        exit 0
+        exit 1
     fi 
 
     label-scope-exists "$new_label" "$scope"
     if [[ $? -ne 0 ]]; then
         error "Cannot rename \"$scope|$current_label\" to \"$scope|$new_label\" label-scope combination." 
         error "Because the combination \"$scope|$new_label\" already exists!"
-        exit 0
+        exit 1
     fi 
 
     verbose "Renaming \"$scope|$current_label\" -> \"$scope|$new_label\""
@@ -170,7 +171,7 @@ case $1 in
     reorganize
     ;;
 
-  help)
+  help|--help)
     help    
     ;;
 
