@@ -5,3 +5,4 @@ ins
 
 doc/*.1
 doc/*.1.gz
+.idea/*
