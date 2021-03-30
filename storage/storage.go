@@ -51,11 +51,15 @@ func(s Storage) Reorganize() error {
 	for _, line := range lines {
 		_, err := writer.WriteString(line)
 		if err != nil {
+			_ = file.Close()
+			_ = tmpFile.Close()
 			return fmt.Errorf("failed to write to tmp file")
 		}
 	}
+	_ = file.Close()
 
 	err = writer.Flush()
+	_ = tmpFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to flush lines to tmp file")
 	}
@@ -63,7 +67,7 @@ func(s Storage) Reorganize() error {
 	err = os.Rename(s.instructionTmpFilePath, s.instructionFilePath)
 	if err != nil {
 		_ = os.Remove(s.instructionTmpFilePath)
-		return fmt.Errorf("failed to rename tmp to instruction file")
+		return fmt.Errorf("failed to replace the instructions file by the tmp file")
 	}
 
 	return nil
@@ -74,6 +78,7 @@ func(s Storage) AddInstruction(scope string, label string, instruction string) (
 	if err != nil {
 		return "", fmt.Errorf("failed to open instructions file in append mode")
 	}
+	defer file.Close()
 
 	_, err = shellwords.Parse(instruction)
 
@@ -91,6 +96,7 @@ func(s Storage) ListInstructions(scope string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open instruction file")
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	var lines []string
@@ -118,6 +124,8 @@ func(s Storage) RenameInstruction(scope string, oldLabel string, newLabel string
 		if s.hasScopeAndLabel(line, scope, oldLabel) {
 			substrings := strings.SplitAfterN(line, s.labelInstructionDelimiter, 2)
 			if len(substrings) != 2 {
+				_ = file.Close()
+				_ = tmpFile.Close()
 				return fmt.Errorf("entry is corrupted '%s'", line)
 			}
 			instruction := substrings[1]
@@ -125,16 +133,20 @@ func(s Storage) RenameInstruction(scope string, oldLabel string, newLabel string
 		}
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
+			_ = file.Close()
+			_ = tmpFile.Close()
 			return fmt.Errorf("failed to write to tmp file")
 		}
 	}
+	_ = file.Close()
 
 	err = writer.Flush()
+	_ = tmpFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to flush lines to tmp file")
 	}
 
-	err = os.Rename(s.instructionTmpFilePath,s.instructionFilePath)
+	err = os.Rename(s.instructionTmpFilePath, s.instructionFilePath)
 	if err != nil {
 		_ = os.Remove(s.instructionTmpFilePath)
 		return fmt.Errorf("failed to replace the instructions file by the tmp file")
@@ -159,11 +171,15 @@ func(s Storage) RemoveInstruction(scope string, label string) error {
 		}
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
+			_ = file.Close()
+			_ = tmpFile.Close()
 			return fmt.Errorf("failed to write line '%s' to tmp file", line)
 		}
 	}
+	_ = file.Close()
 
 	err = writer.Flush()
+	_ = tmpFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to flush lines to tmp file")
 	}
@@ -178,7 +194,12 @@ func(s Storage) RemoveInstruction(scope string, label string) error {
 }
 
 func(s Storage) GetInstruction(scope string, label string) (string, error) {
-	file, _ := os.Open(s.instructionFilePath)
+	file, err := os.Open(s.instructionFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open instruction file")
+	}
+	defer file.Close()
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -194,8 +215,9 @@ func(s Storage) GetInstruction(scope string, label string) (string, error) {
 	return "", fmt.Errorf("scope-label combination '%s|%s' does not exists", scope, label)
 }
 
-func(s Storage) LabelExists(scope string, label string) bool {
+func(s Storage) InstructionExists(scope string, label string) bool {
 	file, _ := os.Open(s.instructionFilePath)
+	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -214,6 +236,7 @@ func (s Storage) openInstructionFiles() (*os.File, *os.File, error) {
 
 	tmpFile, err := os.OpenFile(s.instructionTmpFilePath, os.O_CREATE|os.O_WRONLY,0600)
 	if err != nil {
+		_ = file.Close()
 		return nil, nil, fmt.Errorf("failed to open instructions tmp file %s", s.instructionTmpFilePath)
 	}
 	return file, tmpFile, nil

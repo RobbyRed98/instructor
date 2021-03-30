@@ -53,8 +53,8 @@ func main() {
 		checkArgs(3, *newPrinter)
 		label := os.Args[2]
 
-		isLabel := instructionStorage.LabelExists(scope, label)
-		if isLabel {
+		isInstruction := instructionStorage.InstructionExists(scope, label)
+		if isInstruction {
 			newPrinter.Error("Shortcut already exists!")
 			os.Exit(1)
 		}
@@ -71,8 +71,8 @@ func main() {
 	case "rm":
 		checkArgs(2, *newPrinter)
 		label := os.Args[2]
-		isLabel := instructionStorage.LabelExists(scope, label)
-		if !isLabel {
+		isInstruction := instructionStorage.InstructionExists(scope, label)
+		if !isInstruction {
 			newPrinter.Error("Shortcut does not exist.")
 			newPrinter.Debug(scope + "|" + label)
 			os.Exit(1)
@@ -92,8 +92,8 @@ func main() {
 		checkArgs(3, *newPrinter)
 		oldLabel := os.Args[2]
 		newLabel := os.Args[3]
-		isLabel := instructionStorage.LabelExists(scope, oldLabel)
-		if !isLabel {
+		isInstruction := instructionStorage.InstructionExists(scope, oldLabel)
+		if !isInstruction {
 			newPrinter.Error("No shortcut found.")
 			newPrinter.Debug(scope, "|", oldLabel)
 			os.Exit(1)

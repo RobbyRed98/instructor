@@ -2,6 +2,7 @@ instructor-*
 instructor_*
 instructor
 ins
+ins.*
 
 doc/*.1
 doc/*.1.gz
