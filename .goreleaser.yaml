@@ -1,0 +1,49 @@
+archives:
+  - format_overrides:
+    - goos: windows
+      format: zip
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    binary: ins
+    goos:
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 6
+      - 7
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+
+nfpms:
+  -
+    maintainer: RobbyRed98 <r.roth@mail.de>
+    release: 1.0.1
+    formats:
+      - deb
+    license: MIT
+    section: default
+    priority: optional
+    description: |
+      Cli-tool to create shortcuts for specific shell commands.
+      The commands are scope based. A scope is represented by a directory.
+      Currently the usage of the parent directory scope is not supported in
+      a sub-directory. The tool allows one to create, use, list, remove, rename
+      and reorganize the shortcuts.
+
+    bindir: /usr/bin
+    contents:
+      - src: doc/ins.1.gz
+        dst: /usr/share/man/man1/ins.1.gz
+
+      - src: doc/instructor.1.gz
+        dst: /usr/share/man/man1/instructor.1.gz
+

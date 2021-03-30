@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/RobbyRed98/instructor/config"
 	"github.com/RobbyRed98/instructor/printer"
 	"github.com/RobbyRed98/instructor/runner"
 	"github.com/RobbyRed98/instructor/storage"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -26,7 +26,8 @@ func main() {
 	command := os.Args[1]
 	scope, _ := os.Getwd()
 
-	instructionsFilePath := config.GetInstructionFile()
+	homeDir, _ := os.UserHomeDir()
+	instructionsFilePath := path.Join(homeDir, ".instructions")
 	instructionStorage := storage.NewStorage(instructionsFilePath, newPrinter)
 
 	switch command {
@@ -43,8 +44,9 @@ func main() {
 		}
 
 		for _, entry := range entries {
+			entry = "(" + entry
 			entry = strings.Replace(entry, "|", " | ", 1)
-			entry = strings.Replace(entry, "->", " -> ", 1)
+			entry = strings.Replace(entry, "->", ") -> ", 1)
 			entry = strings.Trim(entry, "\n")
 			newPrinter.Info(entry)
 		}

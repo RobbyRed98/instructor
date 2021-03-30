@@ -2,8 +2,9 @@ instructor-*
 instructor_*
 instructor
 ins
-ins.*
+*.exe
 
 doc/*.1
 doc/*.1.gz
 .idea/*
+dist
