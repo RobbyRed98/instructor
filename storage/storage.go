@@ -104,7 +104,7 @@ func(s Storage) ListInstructions(scope string) ([]string, error) {
 	return lines, nil
 }
 
-func(s Storage) RenameInstruction(scope string, label string) error {
+func(s Storage) RenameInstruction(scope string, oldLabel string, newLabel string) error {
 	file, tmpFile, err := s.openInstructionFiles()
 	if err != nil {
 		return err
@@ -115,13 +115,13 @@ func(s Storage) RenameInstruction(scope string, label string) error {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		if s.hasScopeAndLabel(line, scope, label) {
+		if s.hasScopeAndLabel(line, scope, oldLabel) {
 			substrings := strings.SplitAfterN(line, s.labelInstructionDelimiter, 2)
 			if len(substrings) != 2 {
 				return fmt.Errorf("entry is corrupted '%s'", line)
 			}
 			instruction := substrings[1]
-			line = s.getScopeLabelPair(scope, label) + s.labelInstructionDelimiter + instruction
+			line = s.getScopeLabelPair(scope, newLabel) + s.labelInstructionDelimiter + instruction
 		}
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
@@ -191,7 +191,7 @@ func(s Storage) GetInstruction(scope string, label string) (string, error) {
 			return instruction, nil
 		}
 	}
-	return "", fmt.Errorf("scope-Label combination '%s|%s' does not exists", scope, label)
+	return "", fmt.Errorf("scope-label combination '%s|%s' does not exists", scope, label)
 }
 
 func(s Storage) LabelExists(scope string, label string) bool {

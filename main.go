@@ -97,14 +97,17 @@ func main() {
 			newPrinter.Error("No shortcut found.")
 			newPrinter.Debug(scope, "|", oldLabel)
 			os.Exit(1)
+		} else {
+			newPrinter.Debug("Shortcut found.")
 		}
 
-		err := instructionStorage.RenameInstruction(scope, oldLabel)
+		err := instructionStorage.RenameInstruction(scope, oldLabel, newLabel)
 		if err != nil {
 			newPrinter.Error("Failed to rename the shortcut.")
 			newPrinter.Debug(scope + "|" + oldLabel , "->", scope + "|" + newLabel)
 			os.Exit(1)
 		}
+		newPrinter.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
 
 	case "reorganize":
 		checkArgs(1, *newPrinter)
@@ -123,7 +126,10 @@ func main() {
 		instruction, err := instructionStorage.GetInstruction(scope, label)
 
 		if err != nil {
-			newPrinter.Error(err.Error())
+			newPrinter.Error("Shortcut does not exist.")
+			newPrinter.Debug(instruction)
+
+			os.Exit(1)
 		}
 
 		instructionRunner := runner.NewRunner(printLevel)
