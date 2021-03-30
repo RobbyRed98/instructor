@@ -17,7 +17,6 @@ func (p Printer) Error(args ...string) {
 	if *p.level < ERROR {
 		return
 	}
-	fmt.Print("Error: ")
 	fmt.Println(strings.Join(args, " "))
 }
 

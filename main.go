@@ -11,15 +11,16 @@ import (
 )
 
 func main() {
-	printLevel := printer.DEBUG
+	printLevel := printer.INFO
 	newPrinter := printer.NewPrinter(&printLevel)
-	for i, arg := range os.Args {
-		newPrinter.Debug(strconv.Itoa(i), ":", arg)
-	}
-
 	if len(os.Args) < 2 {
 		newPrinter.Error("No command has been passed.")
+		help(*newPrinter)
 		os.Exit(1)
+	}
+
+	for i, arg := range os.Args {
+		newPrinter.Debug(strconv.Itoa(i), ":", arg)
 	}
 
 	command := os.Args[1]
@@ -115,7 +116,7 @@ func main() {
 		newPrinter.Debug("Successfully reorganized instructions file.")
 
 	case "help":
-		newPrinter.Info("Not yet implemented!")
+		help(*newPrinter)
 
 	default:
 		label := command
@@ -147,4 +148,27 @@ func checkMultiArgs(lowerNum int, upperNum int, newPrinter printer.Printer) int 
 		os.Exit(1)
 	}
 	return argsNum
+}
+
+func help(newPrinter printer.Printer) {
+	helpText := []string{
+		"Usage:",
+		"ins <command> <args>",
+		"",
+		"Allows the creation and usage of scope-bound shell shortcuts.",
+		"",
+		"<shortcut>      Executes a created shortcut.",
+		"add             Creates a scope-bound shortcut for a shell command.",
+		"mv              Renames a shortcut.",
+		"rename          Also renames a shortcut.",
+		"rm              Removes a shortcut.",
+		"list            Lists all existing shortcuts.",
+		"reorganize      Reorganizes the file in which the shortcuts and commands are stored.",
+		"",
+		"help            Prints this help text.",
+	}
+
+	for _, line := range helpText {
+		newPrinter.Info(line)
+	}
 }
