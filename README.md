@@ -53,5 +53,5 @@ ins reorganize
 
 Lists all existing shortcuts. 
 ```bash
-**ins** list
+ins list
 ```
