@@ -11,7 +11,7 @@ jobs:
           sudo apt install pandoc
           pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
       - name: Set version
-        run : git tag "$(cat version)"
+        run : git tag "$(cat version)" || echo "Tag already exists"
       - name: GoReleaser Action
         uses: goreleaser/goreleaser-action@v2.1.1
         with:
