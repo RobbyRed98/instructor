@@ -1,9 +1,9 @@
 # instructor
-A small tool to create scope based shortcuts for shell commands.
+Cli-tool to create scope based shortcuts for shell commands.
 
 ## Description
 
-A cli-tool to create shortcuts for specific shell comands. The commands are scope based. A scope is represented by a directory. Currently the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename and reorganize the shortcuts.
+Cli-tool to create shortcuts for specific shell commands. The commands are scope based. A scope is represented by a directory. Currently, the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename, edit and reorganize the shortcuts.
 
 ## Build 
 
@@ -36,9 +36,14 @@ Creates a shortcut command which runs a specific instruction.
 ins add <shortcut> <instruction>
 ```
 
-Replaces the name of the old shortcut by the a new shortcut name.
+Replaces the name of the old shortcut by the new shortcut name.
 ```bash
 ins mv <shortcut-old> <shortcut-new>
+```
+
+Edits the instruction of the shortcut by a replacing it with a new one.
+```bash
+ins edit <shortcut> <instruction-new>
 ```
 
 Removes the shortcut with the passed name in the current scope.

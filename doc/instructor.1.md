@@ -1,6 +1,6 @@
-% instructor(1) 11.0
+% instructor(1) 1.1.1
 % RobbyRed98
-% March 2021
+% April 2021
 
 # NAME
 instructor - a small cli-tool to add scope bound shortcuts for regular tasks/commands. 
@@ -11,7 +11,7 @@ instructor - a small cli-tool to add scope bound shortcuts for regular tasks/com
 **ins** [command] [args]
 
 # DESCRIPTION
-Cli-tool to create shortcuts for specific shell comands. The commands are scope based. A scope is represented by a directory. Currently the usage of the parent directory scope is not supported in a sub-directory. The tool allows one to create, use, list, remove, rename and reorganize the shortcuts.
+Cli-tool to create shortcuts for specific shell commands. The commands are scope based. A scope is represented by a directory. Currently, the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename, edit and reorganize the shortcuts.
 
 # COMMANDS
 **ins** [shortcut]
@@ -22,6 +22,9 @@ Cli-tool to create shortcuts for specific shell comands. The commands are scope 
 
 **ins** mv [shortcut-old] [shortcut-new]
 : Renames replaces the old shortcut name by the new shortcut name.
+
+**ins** edit [shortcut] [instruction-new]
+: Edits the instruction of the shortcut by a replacing it with a new one.
 
 **ins** rm [shortcut]
 : Removes the passed shortcut name.

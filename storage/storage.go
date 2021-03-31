@@ -11,17 +11,19 @@ import (
 )
 
 type Storage struct {
-	instructionFilePath string
-	instructionTmpFilePath string
-	scopeLabelDelimiter string
+	instructionFilePath       string
+	instructionTmpFilePath    string
+	instructionSaveFilePath   string
+	scopeLabelDelimiter       string
 	labelInstructionDelimiter string
-	printer *printer.Printer
+	printer                   *printer.Printer
 }
 
 func NewStorage(path string, printer *printer.Printer) *Storage {
 	s := Storage{}
 	s.instructionFilePath = path
 	s.instructionTmpFilePath = path + ".tmp"
+	s.instructionSaveFilePath = path + ".bak"
 	s.scopeLabelDelimiter = "|"
 	s.labelInstructionDelimiter = "->"
 	s.printer = printer
@@ -31,6 +33,36 @@ func NewStorage(path string, printer *printer.Printer) *Storage {
 func(s Storage) Exists() bool {
 	_, err := os.Stat(s.instructionFilePath)
 	return err == nil
+}
+
+func(s Storage) Save() error {
+	fileContent, err := os.ReadFile(s.instructionFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to read instruction file")
+	}
+
+	err = os.WriteFile(s.instructionSaveFilePath, fileContent, 0644)
+	if err != nil {
+		_ = os.Remove(s.instructionSaveFilePath)
+		return fmt.Errorf("failed to write instruction save file")
+	}
+	return nil
+}
+
+func (s Storage) DeleteSave() error {
+	err := os.Remove(s.instructionSaveFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to delete instruction save file")
+	}
+	return nil
+}
+
+func(s Storage) Rollback() error {
+	err := os.Rename(s.instructionSaveFilePath, s.instructionFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to replace instructions file by backup")
+	}
+	return nil
 }
 
 func(s Storage) Reorganize() error {

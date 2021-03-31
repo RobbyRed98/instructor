@@ -37,6 +37,9 @@ func main() {
 			scope = ""
 			newPrinter.Debug("Using global scope.")
 			newPrinter.Debug("Listing all shortcuts.")
+		} else if argNum == 2 {
+			newPrinter.Error("Invalid argument:", os.Args[2])
+			os.Exit(0)
 		}
 		entries, err := instructionStorage.ListInstructions(scope)
 		if err != nil {
@@ -64,10 +67,11 @@ func main() {
 		instruction := os.Args[3]
 		entry, err := instructionStorage.AddInstruction(scope, label, instruction)
 		if err != nil {
-			newPrinter.Error(err.Error())
-			os.Exit(0)
+			newPrinter.Error("Failed to create shortcut.")
+			newPrinter.Debug(err.Error())
+			os.Exit(1)
 		}
-		newPrinter.Info("Created shortcut.")
+		newPrinter.Info("Successfully created shortcut.")
 		newPrinter.Debug(strings.Trim(entry, "\n"))
 
 	case "rm":
@@ -110,6 +114,50 @@ func main() {
 			os.Exit(1)
 		}
 		newPrinter.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
+
+	case "edit":
+		checkArgs(3, *newPrinter)
+		label := os.Args[2]
+		instruction := os.Args[3]
+		isInstruction := instructionStorage.InstructionExists(scope, label)
+		if !isInstruction {
+			newPrinter.Error("No shortcut found.")
+			newPrinter.Debug(scope, "|", label)
+			os.Exit(1)
+		} else {
+			newPrinter.Debug("Shortcut found.")
+		}
+
+		err := instructionStorage.Save()
+		if err != nil {
+			newPrinter.Error("Failed to alter shortcut.")
+			newPrinter.Debug(err.Error())
+			os.Exit(1)
+		}
+
+		err = instructionStorage.RemoveInstruction(scope, label)
+		if err != nil {
+			_ = instructionStorage.Rollback()
+			newPrinter.Error("Failed to alter shortcut.")
+			newPrinter.Debug(scope, "|", label)
+			newPrinter.Debug(err.Error())
+			os.Exit(1)
+		}
+
+		entry, err := instructionStorage.AddInstruction(scope, label, instruction)
+		if err != nil {
+			_ = instructionStorage.Rollback()
+			newPrinter.Error("Failed to alter shortcut.")
+			newPrinter.Debug(err.Error())
+			os.Exit(1)
+		}
+
+		err = instructionStorage.DeleteSave()
+		if err != nil {
+			newPrinter.Debug(err.Error())
+		}
+		newPrinter.Info("Successfully altered shortcut.")
+		newPrinter.Debug(strings.Trim(entry, "\n"))
 
 	case "reorganize":
 		checkArgs(1, *newPrinter)
@@ -169,6 +217,7 @@ func help(newPrinter printer.Printer) {
 		"add             Creates a scope-bound shortcut for a shell command.",
 		"mv              Renames a shortcut.",
 		"rename          Also renames a shortcut.",
+		"edit 			 Edits the instruction of the shortcut by a replacing it with a new one.",
 		"rm              Removes a shortcut.",
 		"list            Lists all existing shortcuts.",
 		"reorganize      Reorganizes the file in which the shortcuts and commands are stored.",
