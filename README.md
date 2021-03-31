@@ -5,35 +5,27 @@ A small tool to create scope based shortcuts for shell commands.
 
 A cli-tool to create shortcuts for specific shell comands. The commands are scope based. A scope is represented by a directory. Currently the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename and reorganize the shortcuts.
 
-## Build & Setup
+## Build 
 
-### Dependencies
-```bash
-$ sudo apt install make devscripts pandoc
-```
-The core-utils sed and grep are also required, but are most likely already installed. 
+### On Linux
 
-### Build a debian package
+#### Linux
 ```bash
-$ make clean package
-```
-or 
-```bash
-$ make
+$ go mod download
+$ pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
+$ goreleaser release --skip-publish --rm-dist --snapshot
+$ go build -o ins
 ```
 
-### Install without a package manager
+#### Windows
 ```bash
-make install
-```
-
-### Uninstalling 
-```bash
-make uninstall
+$ go mod download
+$ pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
+$ goreleaser release --skip-publish --rm-dist --snapshot
+$ GOOS=windows GOARCH=amd64 go build -o ins.exe
 ```
 
 ## Usage
-
 Executes a shortcut command.
 ```bash
 $ ins <shortcut>

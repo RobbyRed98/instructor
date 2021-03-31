@@ -1,5 +1,10 @@
 instructor-*
 instructor_*
+instructor
+ins
+*.exe
 
 doc/*.1
 doc/*.1.gz
+.idea/*
+dist
