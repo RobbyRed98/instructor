@@ -30,12 +30,12 @@ func NewStorage(path string, printer *printer.Printer) *Storage {
 	return &s
 }
 
-func(s Storage) Exists() bool {
+func (s Storage) Exists() bool {
 	_, err := os.Stat(s.instructionFilePath)
 	return err == nil
 }
 
-func(s Storage) Save() error {
+func (s Storage) Save() error {
 	fileContent, err := os.ReadFile(s.instructionFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read instruction file")
@@ -57,7 +57,7 @@ func (s Storage) DeleteSave() error {
 	return nil
 }
 
-func(s Storage) Rollback() error {
+func (s Storage) Rollback() error {
 	err := os.Rename(s.instructionSaveFilePath, s.instructionFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to replace instructions file by backup")
@@ -65,7 +65,7 @@ func(s Storage) Rollback() error {
 	return nil
 }
 
-func(s Storage) Reorganize() error {
+func (s Storage) Reorganize() error {
 	file, tmpFile, err := s.openInstructionFiles()
 	if err != nil {
 		return fmt.Errorf("failed to open instructions file or tmp file")
@@ -105,8 +105,8 @@ func(s Storage) Reorganize() error {
 	return nil
 }
 
-func(s Storage) AddInstruction(scope string, label string, instruction string) (string, error) {
-	file, err := os.OpenFile(s.instructionFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY,0600)
+func (s Storage) AddInstruction(scope string, label string, instruction string) (string, error) {
+	file, err := os.OpenFile(s.instructionFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return "", fmt.Errorf("failed to open instructions file in append mode")
 	}
@@ -123,7 +123,7 @@ func(s Storage) AddInstruction(scope string, label string, instruction string) (
 	return entry, err
 }
 
-func(s Storage) ListInstructions(scope string) ([]string, error) {
+func (s Storage) ListInstructions(scope string) ([]string, error) {
 	file, err := os.Open(s.instructionFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open instruction file")
@@ -142,7 +142,7 @@ func(s Storage) ListInstructions(scope string) ([]string, error) {
 	return lines, nil
 }
 
-func(s Storage) RenameInstruction(scope string, oldLabel string, newLabel string) error {
+func (s Storage) RenameInstruction(scope string, oldLabel string, newLabel string) error {
 	file, tmpFile, err := s.openInstructionFiles()
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func(s Storage) RenameInstruction(scope string, oldLabel string, newLabel string
 	return nil
 }
 
-func(s Storage) RemoveInstruction(scope string, label string) error {
+func (s Storage) RemoveInstruction(scope string, label string) error {
 	file, tmpFile, err := s.openInstructionFiles()
 	if err != nil {
 		return err
@@ -225,7 +225,7 @@ func(s Storage) RemoveInstruction(scope string, label string) error {
 	return nil
 }
 
-func(s Storage) GetInstruction(scope string, label string) (string, error) {
+func (s Storage) GetInstruction(scope string, label string) (string, error) {
 	file, err := os.Open(s.instructionFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open instruction file")
@@ -235,7 +235,7 @@ func(s Storage) GetInstruction(scope string, label string) (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if  s.hasScopeAndLabel(line, scope, label) {
+		if s.hasScopeAndLabel(line, scope, label) {
 			substrings := strings.SplitAfterN(line, s.labelInstructionDelimiter, 2)
 			if len(substrings) != 2 {
 				return "", fmt.Errorf("invalid state scope-label '%s|%s' command lacks instruction", scope, label)
@@ -247,7 +247,7 @@ func(s Storage) GetInstruction(scope string, label string) (string, error) {
 	return "", fmt.Errorf("scope-label combination '%s|%s' does not exists", scope, label)
 }
 
-func(s Storage) InstructionExists(scope string, label string) bool {
+func (s Storage) InstructionExists(scope string, label string) bool {
 	file, _ := os.Open(s.instructionFilePath)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -266,7 +266,7 @@ func (s Storage) openInstructionFiles() (*os.File, *os.File, error) {
 		return nil, nil, fmt.Errorf("failed to open instructions file %s", s.instructionFilePath)
 	}
 
-	tmpFile, err := os.OpenFile(s.instructionTmpFilePath, os.O_CREATE|os.O_WRONLY,0600)
+	tmpFile, err := os.OpenFile(s.instructionTmpFilePath, os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		_ = file.Close()
 		return nil, nil, fmt.Errorf("failed to open instructions tmp file %s", s.instructionTmpFilePath)
@@ -274,18 +274,18 @@ func (s Storage) openInstructionFiles() (*os.File, *os.File, error) {
 	return file, tmpFile, nil
 }
 
-func(s Storage) hasScopeAndLabel(entry string, scope string, label string) bool {
+func (s Storage) hasScopeAndLabel(entry string, scope string, label string) bool {
 	scopeLabelPrefix := s.getScopeLabelPair(scope, label) + s.labelInstructionDelimiter
 	return strings.HasPrefix(entry, scopeLabelPrefix)
 }
 
-func(s Storage) hasScope(entry string, scope string) bool {
+func (s Storage) hasScope(entry string, scope string) bool {
 	if scope == "" {
 		return true
 	}
-	return strings.HasPrefix(entry, scope + s.scopeLabelDelimiter)
+	return strings.HasPrefix(entry, scope+s.scopeLabelDelimiter)
 }
 
-func(s Storage) getScopeLabelPair(scope string, label string) string {
+func (s Storage) getScopeLabelPair(scope string, label string) string {
 	return scope + s.scopeLabelDelimiter + label
 }

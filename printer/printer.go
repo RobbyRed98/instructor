@@ -9,7 +9,7 @@ type Printer struct {
 	level *int
 }
 
-func NewPrinter(level *int) *Printer  {
+func NewPrinter(level *int) *Printer {
 	return &Printer{level}
 }
 

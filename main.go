@@ -32,7 +32,7 @@ func main() {
 
 	switch command {
 	case "list":
-		argNum := checkMultiArgs(1,2, *newPrinter)
+		argNum := checkMultiArgs(1, 2, *newPrinter)
 		if argNum == 2 && os.Args[2] == "all" {
 			scope = ""
 			newPrinter.Debug("Using global scope.")
@@ -110,7 +110,7 @@ func main() {
 		err := instructionStorage.RenameInstruction(scope, oldLabel, newLabel)
 		if err != nil {
 			newPrinter.Error("Failed to rename the shortcut.")
-			newPrinter.Debug(scope + "|" + oldLabel , "->", scope + "|" + newLabel)
+			newPrinter.Debug(scope+"|"+oldLabel, "->", scope+"|"+newLabel)
 			os.Exit(1)
 		}
 		newPrinter.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
@@ -191,7 +191,7 @@ func checkArgs(requiredNum int, newPrinter printer.Printer) {
 	argsNum := len(os.Args) - 1
 	if argsNum != requiredNum {
 		newPrinter.Error("Wrong number of arguments.")
-		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum) + ",", "arguments required:", strconv.Itoa(requiredNum))
+		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "arguments required:", strconv.Itoa(requiredNum))
 		os.Exit(1)
 	}
 }
@@ -200,7 +200,7 @@ func checkMultiArgs(lowerNum int, upperNum int, newPrinter printer.Printer) int 
 	argsNum := len(os.Args) - 1
 	if lowerNum > argsNum || argsNum > upperNum {
 		newPrinter.Error("Wrong number of arguments.")
-		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum) + ",", "allow argument numbers:", strconv.Itoa(lowerNum), "-", strconv.Itoa(upperNum))
+		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "allow argument numbers:", strconv.Itoa(lowerNum), "-", strconv.Itoa(upperNum))
 		os.Exit(1)
 	}
 	return argsNum

@@ -12,5 +12,3 @@ func NewRunner(level int) *Runner {
 	newPrinter := printer.NewPrinter(&level)
 	return &Runner{newPrinter}
 }
-
-
