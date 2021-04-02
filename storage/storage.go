@@ -247,7 +247,7 @@ func (s Storage) GetInstruction(scope string, label string) (string, error) {
 	return "", fmt.Errorf("scope-label combination '%s|%s' does not exists", scope, label)
 }
 
-func (s Storage) InstructionExists(scope string, label string) bool {
+func (s Storage) HasInstructionFor(scope string, label string) bool {
 	file, _ := os.Open(s.instructionFilePath)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)

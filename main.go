@@ -12,15 +12,15 @@ import (
 
 func main() {
 	printLevel := printer.INFO
-	newPrinter := printer.NewPrinter(&printLevel)
+	printy := printer.NewPrinter(&printLevel)
 	if len(os.Args) < 2 {
-		newPrinter.Error("No command has been passed.")
-		Help(*newPrinter)
+		printy.Error("No command has been passed.")
+		Help(*printy)
 		os.Exit(1)
 	}
 
 	for i, arg := range os.Args {
-		newPrinter.Debug(strconv.Itoa(i), ":", arg)
+		printy.Debug(strconv.Itoa(i), ":", arg)
 	}
 
 	command := os.Args[1]
@@ -28,48 +28,48 @@ func main() {
 
 	homeDir, _ := os.UserHomeDir()
 	instructionsFilePath := path.Join(homeDir, ".instructions")
-	instructionStorage := storage.NewStorage(instructionsFilePath, newPrinter)
+	instructionStorage := storage.NewStorage(instructionsFilePath, printy)
 
 	switch command {
 	case "list":
-		List(newPrinter, scope, instructionStorage)
+		List(printy, scope, instructionStorage)
 
 	case "add":
-		Add(newPrinter, instructionStorage, scope)
+		Add(printy, instructionStorage, scope)
 
 	case "rm":
-		Remove(newPrinter, instructionStorage, scope)
+		Remove(printy, instructionStorage, scope)
 
 	case "mv", "rename":
-		Rename(newPrinter, instructionStorage, scope)
+		Rename(printy, instructionStorage, scope)
 
 	case "edit":
-		Edit(newPrinter, instructionStorage, scope)
+		Edit(printy, instructionStorage, scope)
 
 	case "reorganize":
-		Reorganize(newPrinter, instructionStorage)
+		Reorganize(printy, instructionStorage)
 
 	case "Help":
-		Help(*newPrinter)
+		Help(*printy)
 
 	default:
-		Execute(command, instructionStorage, scope, newPrinter, printLevel)
+		Execute(command, instructionStorage, scope, printy, printLevel)
 	}
 }
 
-func List(newPrinter *printer.Printer, scope string, instructionStorage *storage.Storage) {
-	argNum := checkMultiArgs(1, 2, *newPrinter)
+func List(printy *printer.Printer, scope string, instructionStorage *storage.Storage) {
+	argNum := checkMultiArgs(1, 2, *printy)
 	if argNum == 2 && os.Args[2] == "all" {
 		scope = ""
-		newPrinter.Debug("Using global scope.")
-		newPrinter.Debug("Listing all shortcuts.")
+		printy.Debug("Using global scope.")
+		printy.Debug("Listing all shortcuts.")
 	} else if argNum == 2 {
-		newPrinter.Error("Invalid argument:", os.Args[2])
+		printy.Error("Invalid argument:", os.Args[2])
 		os.Exit(0)
 	}
 	entries, err := instructionStorage.ListInstructions(scope)
 	if err != nil {
-		newPrinter.Info("No instructions file exists.")
+		printy.Info("No instructions file exists.")
 	}
 
 	for _, entry := range entries {
@@ -77,136 +77,153 @@ func List(newPrinter *printer.Printer, scope string, instructionStorage *storage
 		entry = strings.Replace(entry, "|", " | ", 1)
 		entry = strings.Replace(entry, "->", ") -> ", 1)
 		entry = strings.Trim(entry, "\n")
-		newPrinter.Info(entry)
+		printy.Info(entry)
 	}
 }
 
-func Add(newPrinter *printer.Printer, instructionStorage *storage.Storage, scope string) {
-	checkArgs(3, *newPrinter)
+func Add(printy *printer.Printer, instructionStorage *storage.Storage, scope string) {
+	checkArgs(3, *printy)
 	label := os.Args[2]
+	checkLabel(label, *printy)
 
-	isInstruction := instructionStorage.InstructionExists(scope, label)
-	if isInstruction {
-		newPrinter.Error("Shortcut already exists!")
+	hasInstructionFor := instructionStorage.HasInstructionFor(scope, label)
+	if hasInstructionFor {
+		printy.Error("Shortcut already exists!")
 		os.Exit(1)
 	}
 
 	instruction := os.Args[3]
+	checkInstruction(instruction, *printy)
+	if strings.Contains(instruction, "\n") {
+		printy.Error("Failed to create shortcut.")
+		printy.Error("Instruction cannot contain linebreaks.")
+		os.Exit(0)
+	}
+	
 	entry, err := instructionStorage.AddInstruction(scope, label, instruction)
 	if err != nil {
-		newPrinter.Error("Failed to create shortcut.")
-		newPrinter.Debug(err.Error())
+		printy.Error("Failed to create shortcut.")
+		printy.Debug(err.Error())
 		os.Exit(1)
 	}
-	newPrinter.Info("Successfully created shortcut.")
-	newPrinter.Debug(strings.Trim(entry, "\n"))
+	printy.Info("Successfully created shortcut.")
+	printy.Debug(strings.Trim(entry, "\n"))
 }
 
-func Remove(newPrinter *printer.Printer, instructionStorage *storage.Storage, scope string) {
-	checkArgs(2, *newPrinter)
+func Remove(printy *printer.Printer, instructionStorage *storage.Storage, scope string) {
+	checkArgs(2, *printy)
 	label := os.Args[2]
-	isInstruction := instructionStorage.InstructionExists(scope, label)
-	if !isInstruction {
-		newPrinter.Error("Shortcut does not exist.")
-		newPrinter.Debug(scope + "|" + label)
+	checkLabel(label, *printy)
+
+	hasInstructionFor := instructionStorage.HasInstructionFor(scope, label)
+	if !hasInstructionFor {
+		printy.Error("Shortcut does not exist.")
+		printy.Debug(scope + "|" + label)
 		os.Exit(1)
 	}
 
 	err := instructionStorage.RemoveInstruction(scope, label)
 	if err != nil {
-		newPrinter.Error("Failed to remove shortcut combination.")
-		newPrinter.Debug(scope, "|", label)
-		newPrinter.Debug(err.Error())
+		printy.Error("Failed to remove shortcut combination.")
+		printy.Debug(scope, "|", label)
+		printy.Debug(err.Error())
 		os.Exit(1)
 	}
-	newPrinter.Debug("Removed shortcut.")
-	newPrinter.Debug(scope, "|", label)
+	printy.Debug("Removed shortcut.")
+	printy.Debug(scope, "|", label)
 }
 
-func Rename(newPrinter *printer.Printer, instructionStorage *storage.Storage, scope string) {
-	checkArgs(3, *newPrinter)
+func Rename(printy *printer.Printer, instructionStorage *storage.Storage, scope string) {
+	checkArgs(3, *printy)
 	oldLabel := os.Args[2]
+	checkLabel(oldLabel, *printy)
 	newLabel := os.Args[3]
-	isInstruction := instructionStorage.InstructionExists(scope, oldLabel)
-	if !isInstruction {
-		newPrinter.Error("No shortcut found.")
-		newPrinter.Debug(scope, "|", oldLabel)
+	checkLabel(newLabel, *printy)
+
+	hasInstructionFor := instructionStorage.HasInstructionFor(scope, oldLabel)
+	if !hasInstructionFor {
+		printy.Error("No shortcut found.")
+		printy.Debug(scope, "|", oldLabel)
 		os.Exit(1)
 	} else {
-		newPrinter.Debug("Shortcut found.")
+		printy.Debug("Shortcut found.")
 	}
 
 	err := instructionStorage.RenameInstruction(scope, oldLabel, newLabel)
 	if err != nil {
-		newPrinter.Error("Failed to rename the shortcut.")
-		newPrinter.Debug(scope+"|"+oldLabel, "->", scope+"|"+newLabel)
+		printy.Error("Failed to rename the shortcut.")
+		printy.Debug(scope+"|"+oldLabel, "->", scope+"|"+newLabel)
 		os.Exit(1)
 	}
-	newPrinter.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
+	printy.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
 }
 
-func Edit(newPrinter *printer.Printer, instructionStorage *storage.Storage, scope string) {
-	checkArgs(3, *newPrinter)
+func Edit(printy *printer.Printer, instructionStorage *storage.Storage, scope string) {
+	checkArgs(3, *printy)
 	label := os.Args[2]
+	checkLabel(label, *printy)
+
 	instruction := os.Args[3]
-	isInstruction := instructionStorage.InstructionExists(scope, label)
-	if !isInstruction {
-		newPrinter.Error("No shortcut found.")
-		newPrinter.Debug(scope, "|", label)
+	checkInstruction(instruction, *printy)
+	hasInstructionFor := instructionStorage.HasInstructionFor(scope, label)
+	if !hasInstructionFor {
+		printy.Error("No shortcut found.")
+		printy.Debug(scope, "|", label)
 		os.Exit(1)
 	} else {
-		newPrinter.Debug("Shortcut found.")
+		printy.Debug("Shortcut found.")
 	}
 
 	err := instructionStorage.Save()
 	if err != nil {
-		newPrinter.Error("Failed to edit shortcut.")
-		newPrinter.Debug(err.Error())
+		printy.Error("Failed to edit shortcut.")
+		printy.Debug(err.Error())
 		os.Exit(1)
 	}
 
 	err = instructionStorage.RemoveInstruction(scope, label)
 	if err != nil {
 		_ = instructionStorage.Rollback()
-		newPrinter.Error("Failed to edit shortcut.")
-		newPrinter.Debug(scope, "|", label)
-		newPrinter.Debug(err.Error())
+		printy.Error("Failed to edit shortcut.")
+		printy.Debug(scope, "|", label)
+		printy.Debug(err.Error())
 		os.Exit(1)
 	}
 
 	entry, err := instructionStorage.AddInstruction(scope, label, instruction)
 	if err != nil {
 		_ = instructionStorage.Rollback()
-		newPrinter.Error("Failed to edit shortcut.")
-		newPrinter.Debug(err.Error())
+		printy.Error("Failed to edit shortcut.")
+		printy.Debug(err.Error())
 		os.Exit(1)
 	}
 
 	err = instructionStorage.DeleteSave()
 	if err != nil {
-		newPrinter.Debug(err.Error())
+		printy.Debug(err.Error())
 	}
-	newPrinter.Info("Successfully edited shortcut.")
-	newPrinter.Debug(strings.Trim(entry, "\n"))
+	printy.Info("Successfully edited shortcut.")
+	printy.Debug(strings.Trim(entry, "\n"))
 }
 
-func Reorganize(newPrinter *printer.Printer, instructionStorage *storage.Storage) {
-	checkArgs(1, *newPrinter)
+func Reorganize(printy *printer.Printer, instructionStorage *storage.Storage) {
+	checkArgs(1, *printy)
 	err := instructionStorage.Reorganize()
 	if err != nil {
-		newPrinter.Error("Failed to reorganize file.")
+		printy.Error("Failed to reorganize file.")
 		os.Exit(1)
 	}
-	newPrinter.Debug("Successfully reorganized instructions file.")
+	printy.Debug("Successfully reorganized instructions file.")
 }
 
-func Execute(command string, instructionStorage *storage.Storage, scope string, newPrinter *printer.Printer, printLevel int) {
+func Execute(command string, instructionStorage *storage.Storage, scope string, printy *printer.Printer, printLevel int) {
 	label := command
-	instruction, err := instructionStorage.GetInstruction(scope, label)
+	checkLabel(label, *printy)
 
+	instruction, err := instructionStorage.GetInstruction(scope, label)
 	if err != nil {
-		newPrinter.Error("Shortcut does not exist.")
-		newPrinter.Debug(instruction)
+		printy.Error("Shortcut does not exist.")
+		printy.Debug(instruction)
 
 		os.Exit(1)
 	}
@@ -215,7 +232,7 @@ func Execute(command string, instructionStorage *storage.Storage, scope string, 
 	instructionRunner.Run(instruction)
 }
 
-func Help(newPrinter printer.Printer) {
+func Help(printy printer.Printer) {
 	helpText := []string{
 		"Usage:",
 		"ins <command> <args>",
@@ -235,25 +252,41 @@ func Help(newPrinter printer.Printer) {
 	}
 
 	for _, line := range helpText {
-		newPrinter.Info(line)
+		printy.Info(line)
 	}
 }
 
-func checkArgs(requiredNum int, newPrinter printer.Printer) {
+func checkArgs(requiredNum int, printy printer.Printer) {
 	argsNum := len(os.Args) - 1
 	if argsNum != requiredNum {
-		newPrinter.Error("Wrong number of arguments.")
-		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "arguments required:", strconv.Itoa(requiredNum))
+		printy.Error("Wrong number of arguments.")
+		printy.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "arguments required:", strconv.Itoa(requiredNum))
 		os.Exit(1)
 	}
 }
 
-func checkMultiArgs(lowerNum int, upperNum int, newPrinter printer.Printer) int {
+func checkMultiArgs(lowerNum int, upperNum int, printy printer.Printer) int {
 	argsNum := len(os.Args) - 1
 	if lowerNum > argsNum || argsNum > upperNum {
-		newPrinter.Error("Wrong number of arguments.")
-		newPrinter.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "allow argument numbers:", strconv.Itoa(lowerNum), "-", strconv.Itoa(upperNum))
+		printy.Error("Wrong number of arguments.")
+		printy.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "allow argument numbers:", strconv.Itoa(lowerNum), "-", strconv.Itoa(upperNum))
 		os.Exit(1)
 	}
 	return argsNum
+}
+
+func checkLabel(label string, printy printer.Printer) {
+	if strings.Contains(label, "\n") {
+		printy.Error("Invalid argument.")
+		printy.Error("Shortcut name cannot contain linebreaks.")
+		os.Exit(0)
+	}
+}
+
+func checkInstruction(instruction string, printy printer.Printer) {
+	if strings.Contains(instruction, "\n") {
+		printy.Error("Invalid argument.")
+		printy.Error("Instruction cannot contain linebreaks.")
+		os.Exit(0)
+	}
 }
