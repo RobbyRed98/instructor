@@ -32,8 +32,8 @@ Cli-tool to create shortcuts for specific shell commands. The commands are scope
 **ins** reorganize
 : Reorganizes the files in which the shortcuts and instructions are stored.
 
-**ins** list
-: Lists all existing shortcuts. 
+**ins** list [all]
+: Lists existing shortcuts in the current scope and if all is passed every existing shortcut.
 
 # EXAMPLE
 **ins** test

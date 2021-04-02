@@ -5,24 +5,13 @@ Cli-tool to create scope based shortcuts for shell commands.
 
 Cli-tool to create shortcuts for specific shell commands. The commands are scope based. A scope is represented by a directory. Currently, the usage of the parent directory scope is not supported in a sub-directory. The tool allows to create, use, list, remove, rename, edit and reorganize the shortcuts.
 
-## Build 
+## Build
 
-### On Linux
-
-#### Linux
+The instructions only refer to builds on linux systems. 
 ```bash
 $ go mod download
 $ pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
 $ goreleaser release --skip-publish --rm-dist --snapshot
-$ go build -o ins
-```
-
-#### Windows
-```bash
-$ go mod download
-$ pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
-$ goreleaser release --skip-publish --rm-dist --snapshot
-$ GOOS=windows GOARCH=amd64 go build -o ins.exe
 ```
 
 ## Usage
@@ -56,7 +45,7 @@ Reorganizes the file in which the shortcuts and instructions are stored.
 ins reorganize
 ```
 
-Lists all existing shortcuts. 
+Lists existing shortcuts. 
 ```bash
 ins list
 ```
