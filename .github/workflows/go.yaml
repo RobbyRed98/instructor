@@ -5,11 +5,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Build manpages
         run : |
           sudo apt install pandoc
           pandoc doc/instructor.1.md -s -t man | gzip | tee doc/instructor.1.gz > doc/ins.1.gz
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Download go dependencies
+        run : go mod download
       - name: Set version
         run : git tag "$(cat version)" || echo "Tag already exists"
       - name: GoReleaser Action
