@@ -3,6 +3,7 @@ package storage
 import (
 	"bufio"
 	"fmt"
+	"github.com/RobbyRed98/instructor/parser"
 	"github.com/RobbyRed98/instructor/printer"
 	"github.com/mattn/go-shellwords"
 	"os"
@@ -14,9 +15,7 @@ type Storage struct {
 	instructionFilePath       string
 	instructionTmpFilePath    string
 	instructionSaveFilePath   string
-	scopeLabelDelimiter       string
-	labelInstructionDelimiter string
-	printer                   *printer.Printer
+	printy                    *printer.Printer
 }
 
 func NewStorage(path string, printer *printer.Printer) *Storage {
@@ -24,9 +23,7 @@ func NewStorage(path string, printer *printer.Printer) *Storage {
 	s.instructionFilePath = path
 	s.instructionTmpFilePath = path + ".tmp"
 	s.instructionSaveFilePath = path + ".bak"
-	s.scopeLabelDelimiter = "|"
-	s.labelInstructionDelimiter = "->"
-	s.printer = printer
+	s.printy = printer
 	return &s
 }
 
@@ -118,12 +115,12 @@ func (s Storage) AddInstruction(scope string, label string, instruction string) 
 		return "", fmt.Errorf("failed to open instructions file")
 	}
 
-	entry := s.getScopeLabelPair(scope, label) + s.labelInstructionDelimiter + instruction + "\n"
+	entry := parser.GetEntry(scope, label, instruction) + "\n"
 	_, err = file.WriteString(entry)
 	return entry, err
 }
 
-func (s Storage) ListInstructions(scope string) ([]string, error) {
+func (s Storage) ListInstructions(scope string, addLineEnds bool) ([]string, error) {
 	file, err := os.Open(s.instructionFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open instruction file")
@@ -133,7 +130,10 @@ func (s Storage) ListInstructions(scope string) ([]string, error) {
 	scanner := bufio.NewScanner(file)
 	var lines []string
 	for scanner.Scan() {
-		line := scanner.Text() + "\n"
+		line := scanner.Text()
+		if addLineEnds {
+			line = line + "\n"
+		}
 		if s.hasScope(line, scope) {
 			lines = append(lines, line)
 		}
@@ -154,14 +154,14 @@ func (s Storage) RenameInstruction(scope string, oldLabel string, newLabel strin
 	for scanner.Scan() {
 		line := scanner.Text()
 		if s.hasScopeAndLabel(line, scope, oldLabel) {
-			substrings := strings.SplitAfterN(line, s.labelInstructionDelimiter, 2)
+			substrings := strings.SplitAfterN(line, parser.LabelInstructionDelimiter, 2)
 			if len(substrings) != 2 {
 				_ = file.Close()
 				_ = tmpFile.Close()
 				return fmt.Errorf("entry is corrupted '%s'", line)
 			}
 			instruction := substrings[1]
-			line = s.getScopeLabelPair(scope, newLabel) + s.labelInstructionDelimiter + instruction
+			line = parser.GetEntry(scope, newLabel, instruction)
 		}
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
@@ -236,7 +236,7 @@ func (s Storage) GetInstruction(scope string, label string) (string, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if s.hasScopeAndLabel(line, scope, label) {
-			substrings := strings.SplitAfterN(line, s.labelInstructionDelimiter, 2)
+			substrings := strings.SplitAfterN(line, parser.LabelInstructionDelimiter, 2)
 			if len(substrings) != 2 {
 				return "", fmt.Errorf("invalid state scope-label '%s|%s' command lacks instruction", scope, label)
 			}
@@ -260,6 +260,30 @@ func (s Storage) HasInstructionFor(scope string, label string) bool {
 	return false
 }
 
+func (s Storage) AlterInstructionForNewEntries(srcScope string, destScope string) ([]string, error) {
+	instructions, err := s.ListInstructions(srcScope, false)
+	if err != nil {
+		s.printy.Debug(err.Error())
+		return nil, fmt.Errorf("failed to get instructions")
+	}
+
+	if len(instructions) < 1 {
+		return nil, fmt.Errorf("source scope '%s' has no instructions to copy", srcScope)
+	}
+
+	destinationInstructions := make([]string, len(instructions))
+
+	for i, srcInstruction := range instructions {
+		destInstruction := strings.Replace(srcInstruction, srcScope + parser.ScopeLabelDelimiter, destScope + parser.ScopeLabelDelimiter, 1)
+		if !strings.HasPrefix(destInstruction, destScope) {
+			return nil, fmt.Errorf("dest instruction does not begin with destination scope")
+		}
+		destinationInstructions[i] = destInstruction
+	}
+
+	return destinationInstructions, nil
+}
+
 func (s Storage) openInstructionFiles() (*os.File, *os.File, error) {
 	file, err := os.Open(s.instructionFilePath)
 	if err != nil {
@@ -275,7 +299,7 @@ func (s Storage) openInstructionFiles() (*os.File, *os.File, error) {
 }
 
 func (s Storage) hasScopeAndLabel(entry string, scope string, label string) bool {
-	scopeLabelPrefix := s.getScopeLabelPair(scope, label) + s.labelInstructionDelimiter
+	scopeLabelPrefix := parser.GetScopeLabelPair(scope, label) + parser.LabelInstructionDelimiter
 	return strings.HasPrefix(entry, scopeLabelPrefix)
 }
 
@@ -283,9 +307,7 @@ func (s Storage) hasScope(entry string, scope string) bool {
 	if scope == "" {
 		return true
 	}
-	return strings.HasPrefix(entry, scope+s.scopeLabelDelimiter)
+	return strings.HasPrefix(entry, scope+parser.ScopeLabelDelimiter)
 }
 
-func (s Storage) getScopeLabelPair(scope string, label string) string {
-	return scope + s.scopeLabelDelimiter + label
-}
+

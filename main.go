@@ -1,17 +1,21 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"github.com/RobbyRed98/instructor/parser"
 	"github.com/RobbyRed98/instructor/printer"
 	"github.com/RobbyRed98/instructor/runner"
 	"github.com/RobbyRed98/instructor/storage"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	printLevel := printer.INFO
+	printLevel := printer.DEBUG
 	printy := printer.NewPrinter(&printLevel)
 	if len(os.Args) < 2 {
 		printy.Error("No command has been passed.")
@@ -46,6 +50,9 @@ func main() {
 	case "edit":
 		Edit(printy, instructionStorage, scope)
 
+	case "copy":
+		Copy(printy, instructionStorage)
+
 	case "reorganize":
 		Reorganize(printy, instructionStorage)
 
@@ -67,7 +74,7 @@ func List(printy *printer.Printer, scope string, instructionStorage *storage.Sto
 		printy.Error("Invalid argument:", os.Args[2])
 		os.Exit(0)
 	}
-	entries, err := instructionStorage.ListInstructions(scope)
+	entries, err := instructionStorage.ListInstructions(scope, true)
 	if err != nil {
 		printy.Info("No instructions file exists.")
 	}
@@ -216,6 +223,75 @@ func Reorganize(printy *printer.Printer, instructionStorage *storage.Storage) {
 	printy.Debug("Successfully reorganized instructions file.")
 }
 
+func Copy(printy *printer.Printer,  instructionStore *storage.Storage) {
+	checkMultiArgs(2, 3, *printy)
+	srcScope := os.Args[2]
+	var destScope string
+	var err error
+
+	srcScope, err = getAbsDirLikePath(srcScope)
+
+	if srcScope == destScope {
+		printy.Error("Source and destination scope are the same.")
+		os.Exit(1)
+	}
+
+	if len(os.Args) == 4 {
+		destScope, err = getAbsDirPath(os.Args[3])
+		if err != nil {
+			printy.Debug(err.Error())
+			printy.Error(fmt.Sprintf("Destination scope '%s' does not exist.", os.Args[4]))
+			os.Exit(1)
+		}		
+	} else {
+		printy.Debug("Assuming destination directory is the current working directory.")
+		destScope, err = os.Getwd()
+		if err != nil {
+			printy.Error("Could not locate current working directory!")
+			os.Exit(1)
+		}
+	}
+
+	newEntries, err := instructionStore.AlterInstructionForNewEntries(srcScope, destScope)
+	if err != nil {
+		printy.Debug(err.Error())
+		printy.Error("Failed to copy the instructions from the old scope.")
+		os.Exit(1)
+	}
+
+	err = instructionStore.Save()
+	if err != nil {
+		printy.Debug(err.Error())
+		printy.Error("Unexpected situation. Failed to save ")
+	}
+
+	for _, entry := range newEntries {
+		scope, label, instruction, err := parser.Parse(entry)
+		if err != nil {
+			printy.Debug(err.Error())
+			printy.Error("Failed to parse the new entry:", entry)
+			printy.Info("Skipping the entry!")
+			continue
+		}
+
+		if instructionStore.HasInstructionFor(scope, label) {
+			printy.Info(fmt.Sprintf("There is already an shortcut %s in the destination scope %s", label, scope))
+			printy.Info("Skipping the entry!")
+			continue
+		}
+
+		_, err = instructionStore.AddInstruction(scope, label, instruction)
+		if err != nil {
+			printy.Debug(err.Error())
+			printy.Error(fmt.Sprintf("Failed to add the shortcut (%s|%s)->%s.", scope, label, instruction))
+			printy.Info("Skipping the entry!")
+			continue
+		}
+	}
+
+	printy.Info("Successfully copied the shortcuts.")
+}
+
 func Execute(command string, instructionStorage *storage.Storage, scope string, printy *printer.Printer, printLevel int) {
 	label := command
 	checkLabel(label, *printy)
@@ -290,3 +366,47 @@ func checkInstruction(instruction string, printy printer.Printer) {
 		os.Exit(0)
 	}
 }
+
+func getAbsDirPath(path string) (string, error)  {
+	if strings.HasPrefix(path, "~") {
+		homeDir, _ := os.UserHomeDir()
+		path = strings.Replace(path, "~", homeDir, 1)
+	}
+	stat, err := os.Stat(path)
+	exists := !errors.Is(err, os.ErrNotExist)
+	
+	if !exists {
+		return "", fmt.Errorf("path does not exist: %s", path)
+	} 
+	
+	if !stat.IsDir() {
+		return "", fmt.Errorf("path is not a directory: %s", path)
+	}
+	
+	destScope, err := filepath.Abs(path)
+	return destScope, nil
+}
+
+func getAbsDirLikePath(pseudoPath string) (string, error)  {
+	if strings.HasPrefix(pseudoPath, "/") {
+		return path.Clean(pseudoPath), nil
+	}
+
+	if strings.HasPrefix(pseudoPath, "~") {
+		homeDir, _ := os.UserHomeDir()
+		pseudoPath = strings.Replace(pseudoPath, "~", homeDir, 1)
+		return path.Clean(pseudoPath), nil
+	}
+
+	homeDir, err := os.Getwd()
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory")
+	}
+
+	destPath := path.Join(homeDir, pseudoPath)
+
+	return path.Clean(destPath), nil
+}
+
+
