@@ -33,3 +33,7 @@ func (p Printer) Debug(args ...string) {
 	}
 	fmt.Println(strings.Join(args, " "))
 }
+
+func (p Printer) Level() int {
+	return *p.level
+}

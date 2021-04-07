@@ -1,62 +1,51 @@
 package main
 
 import (
+	"github.com/RobbyRed98/instructor/core"
 	"github.com/RobbyRed98/instructor/printer"
-	"github.com/RobbyRed98/instructor/storage"
-	"github.com/RobbyRed98/instructor/ui"
 	"os"
-	"path"
-	"strconv"
 )
 
 func main() {
-	printLevel := printer.DEBUG
-	printy := printer.NewPrinter(&printLevel)
-	if len(os.Args) < 2 {
-		printy.Error("No command has been passed.")
-		ui.Help(*printy)
+	level := printer.INFO
+	printy := printer.NewPrinter(&level)
+
+	command := os.Args[1]
+
+	var instructor core.Instructor
+	instructor, err := core.NewBasicInstructor(printy)
+	if err != nil {
+		printy.Error("Fatal error occurred! Please use debug mode!")
 		os.Exit(1)
 	}
 
-	for i, arg := range os.Args {
-		printy.Debug(strconv.Itoa(i), ":", arg)
-	}
-
-	command := os.Args[1]
-	scope, _ := os.Getwd()
-
-	homeDir, _ := os.UserHomeDir()
-	instructionsFilePath := path.Join(homeDir, ".instructions")
-	instructionStorage := storage.NewStorage(instructionsFilePath, printy)
-
 	switch command {
 	case "list":
-		ui.List(printy, instructionStorage, scope)
+		instructor.List()
 
 	case "add":
-		ui.Add(printy, instructionStorage, scope)
+		instructor.Add()
 
 	case "rm":
-		ui.Remove(printy, instructionStorage, scope)
+		instructor.Remove()
 
 	case "mv", "rename":
-		ui.Rename(printy, instructionStorage, scope)
+		instructor.Rename()
 
 	case "edit":
-		ui.Edit(printy, instructionStorage, scope)
+		instructor.Edit()
 
 	case "copy":
-		ui.Copy(printy, instructionStorage)
+		instructor.Copy()
 
 	case "reorganize":
-		ui.Reorganize(printy, instructionStorage)
+		instructor.Reorganize()
 
 	case "Help":
-		ui.Help(*printy)
+		instructor.Help()
 
 	default:
-		ui.Execute(command, instructionStorage, scope, printy, printLevel)
+		instructor.Execute(command)
 	}
 }
-
 
