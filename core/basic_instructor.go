@@ -315,13 +315,13 @@ func (bi BasicInstructor) checkLabel(label string) {
 	if strings.Contains(label, "\n") {
 		bi.printy.Error("Invalid argument.")
 		bi.printy.Error("Shortcut name cannot contain linebreaks.")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	if strings.Contains(label, parser.LabelInstructionDelimiter) {
 		bi.printy.Error("Invalid argument.")
 		bi.printy.Error("Shortcut name cannot contain '" + parser.LabelInstructionDelimiter + "'.")
-		os.Exit(0)
+		os.Exit(1)
 	}
 }
 
@@ -329,7 +329,7 @@ func (bi BasicInstructor) checkInstruction(instruction string) {
 	if strings.Contains(instruction, "\n") {
 		bi.printy.Error("Invalid argument.")
 		bi.printy.Error("Instruction cannot contain linebreaks.")
-		os.Exit(0)
+		os.Exit(1)
 	}
 }
 
