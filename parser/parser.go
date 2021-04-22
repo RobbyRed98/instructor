@@ -20,6 +20,13 @@ func Parse(entry string) (string, string, string, error) {
 	}
 	label := otherParts[0]
 	instruction := otherParts[1]
+	if len(scope) == 0 {
+		return "", "", "", fmt.Errorf("scope '%q' has length 0", scope)
+	} else if len(label) == 0 {
+		return "", "", "", fmt.Errorf("label '%q' has length 0", scope)
+	} else if len(instruction) == 0 {
+		return "", "", "", fmt.Errorf("instruction '%q' has length 0", scope)
+	}
 	return scope, label, instruction, nil
 }
 
