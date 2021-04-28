@@ -12,7 +12,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	level := printer.DEBUG
+	level := printer.INFO
 	printy := printer.NewPrinter(&level)
 
 	command := os.Args[1]
