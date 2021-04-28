@@ -44,19 +44,22 @@ func NewBasicInstructor(printy *printer.Printer) (*BasicInstructor, error) {
 	return &basicInstructor, nil
 }
 
-func (bi BasicInstructor) List() {
-	argNum := bi.checkMultiArgs(1, 2)
-	if argNum == 2 && os.Args[2] == "all" {
+func (bi BasicInstructor) List() error {
+	argNum, err := bi.checkMultiArgs(1, 2)
+	if err != nil {
+		return err
+	} else if argNum == 2 && os.Args[2] == "all" {
 		bi.currentScope = ""
-		bi.printy.Debug("Using global currentScope.")
+		bi.printy.Debug("Using global scope.")
 		bi.printy.Debug("Listing all shortcuts.")
 	} else if argNum == 2 {
-		bi.printy.Error("Invalid argument:", os.Args[2])
-		os.Exit(0)
+		return fmt.Errorf("Invalid argument: %s", os.Args[2])
 	}
+
 	entries, err := bi.instructionStorage.ListInstructions(bi.currentScope, true)
 	if err != nil {
 		bi.printy.Info("No instructions file exists.")
+		return nil
 	}
 
 	for _, entry := range entries {
@@ -66,123 +69,156 @@ func (bi BasicInstructor) List() {
 		entry = strings.Trim(entry, "\n")
 		bi.printy.Info(entry)
 	}
+
+	return nil
 }
 
-func (bi BasicInstructor) Add() {
-	bi.checkArgs(3)
+func (bi BasicInstructor) Add() error {
+	err := bi.checkArgs(3)
+	if err != nil {
+		return err
+	}
+
 	label := os.Args[2]
-	bi.checkLabel(label)
+	err = bi.checkLabel(label)
+	if err != nil {
+		return err
+	}
 
 	hasInstructionFor := bi.instructionStorage.HasInstructionFor(bi.currentScope, label)
 	if hasInstructionFor {
-		bi.printy.Error("Shortcut already exists!")
-		os.Exit(1)
+		return fmt.Errorf("Shortcut already exists.")
 	}
 
 	instruction := os.Args[3]
-	bi.checkInstruction(instruction)
+	err = bi.checkInstruction(instruction)
+	if err != nil {
+		return err
+	}
+
 	if strings.Contains(instruction, "\n") {
-		bi.printy.Error("Failed to create shortcut.")
-		bi.printy.Error("Instruction cannot contain linebreaks.")
-		os.Exit(0)
+		return fmt.Errorf("Failed to create shortcut.\nInstruction cannot contain linebreaks.")
 	}
 
 	entry, err := bi.instructionStorage.AddInstruction(bi.currentScope, label, instruction)
 	if err != nil {
-		bi.printy.Error("Failed to create shortcut.")
 		bi.printy.Debug(err.Error())
-		os.Exit(1)
+		return fmt.Errorf("Failed to create shortcut.")
 	}
 	bi.printy.Info("Successfully created shortcut.")
 	bi.printy.Debug(strings.Trim(entry, "\n"))
+	return nil
 }
 
-func (bi BasicInstructor) Remove() {
-	bi.checkArgs(2)
+func (bi BasicInstructor) Remove() error {
+	err := bi.checkArgs(2)
+	if err != nil {
+		return err
+	}
+
 	label := os.Args[2]
-	bi.checkLabel(label)
+	err = bi.checkLabel(label)
+	if err != nil {
+		return err
+	}
 
 	hasInstructionFor := bi.instructionStorage.HasInstructionFor(bi.currentScope, label)
 	if !hasInstructionFor {
-		bi.printy.Error("Shortcut does not exist.")
-		bi.printy.Debug(bi.currentScope + "|" + label)
-		os.Exit(1)
+		bi.printy.Debug(bi.currentScope, "|", label)
+		return fmt.Errorf("Shortcut does not exist.")
 	}
 
-	err := bi.instructionStorage.RemoveInstruction(bi.currentScope, label)
+	err = bi.instructionStorage.RemoveInstruction(bi.currentScope, label)
 	if err != nil {
-		bi.printy.Error("Failed to remove shortcut combination.")
-		bi.printy.Debug(bi.currentScope, "|", label)
 		bi.printy.Debug(err.Error())
-		os.Exit(1)
+		bi.printy.Debug(bi.currentScope, "|", label)
+		return fmt.Errorf("Failed to remove shortcut combination.")
 	}
+
 	bi.printy.Debug("Removed shortcut.")
 	bi.printy.Debug(bi.currentScope, "|", label)
+	return nil
 }
 
-func (bi BasicInstructor) Rename() {
-	bi.checkArgs(3)
+func (bi BasicInstructor) Rename() error {
+	err := bi.checkArgs(3)
+	if err != nil {
+		return err
+	}
+
 	oldLabel := os.Args[2]
-	bi.checkLabel(oldLabel)
+	err = bi.checkLabel(oldLabel)
+	if err != nil {
+		return err
+	}
+
 	newLabel := os.Args[3]
-	bi.checkLabel(newLabel)
+	err = bi.checkLabel(newLabel)
+	if err != nil {
+		return err
+	}
 
 	hasInstructionFor := bi.instructionStorage.HasInstructionFor(bi.currentScope, oldLabel)
 	if !hasInstructionFor {
-		bi.printy.Error("No shortcut found.")
 		bi.printy.Debug(bi.currentScope, "|", oldLabel)
-		os.Exit(1)
+		return fmt.Errorf("No shortcut found.")
 	} else {
 		bi.printy.Debug("Shortcut found.")
 	}
 
-	err := bi.instructionStorage.RenameInstruction(bi.currentScope, oldLabel, newLabel)
+	err = bi.instructionStorage.RenameInstruction(bi.currentScope, oldLabel, newLabel)
 	if err != nil {
-		bi.printy.Error("Failed to rename the shortcut.")
 		bi.printy.Debug(bi.currentScope+"|"+oldLabel, "->", bi.currentScope+"|"+newLabel)
-		os.Exit(1)
+		return fmt.Errorf("Failed to rename the shortcut.")
 	}
 	bi.printy.Debug("Successfully renamed shortcut:", oldLabel, "->", newLabel)
+	return nil
 }
 
-func (bi BasicInstructor) Edit() {
-	bi.checkArgs(3)
+func (bi BasicInstructor) Edit() error {
+	err := bi.checkArgs(3)
+	if err != nil {
+		return err
+	}
+
 	label := os.Args[2]
-	bi.checkLabel(label)
+	err = bi.checkLabel(label)
+	if err != nil {
+		return err
+	}
 
 	instruction := os.Args[3]
-	bi.checkInstruction(instruction)
+	err = bi.checkInstruction(instruction)
+	if err != nil {
+		return err
+	}
 	hasInstructionFor := bi.instructionStorage.HasInstructionFor(bi.currentScope, label)
 	if !hasInstructionFor {
-		bi.printy.Error("No shortcut found.")
 		bi.printy.Debug(bi.currentScope, "|", label)
-		os.Exit(1)
+		return fmt.Errorf("No shortcut found.")
 	} else {
 		bi.printy.Debug("Shortcut found.")
 	}
 
-	err := bi.instructionStorage.Save()
+	err = bi.instructionStorage.Save()
 	if err != nil {
-		bi.printy.Error("Failed to edit shortcut.")
 		bi.printy.Debug(err.Error())
-		os.Exit(1)
+		return fmt.Errorf("Failed to edit shortcut.")
 	}
 
 	err = bi.instructionStorage.RemoveInstruction(bi.currentScope, label)
 	if err != nil {
 		_ = bi.instructionStorage.Rollback()
-		bi.printy.Error("Failed to edit shortcut.")
-		bi.printy.Debug(bi.currentScope, "|", label)
 		bi.printy.Debug(err.Error())
-		os.Exit(1)
+		bi.printy.Debug(bi.currentScope, "|", label)
+		return fmt.Errorf("Failed to edit shortcut.")
 	}
 
 	entry, err := bi.instructionStorage.AddInstruction(bi.currentScope, label, instruction)
 	if err != nil {
 		_ = bi.instructionStorage.Rollback()
-		bi.printy.Error("Failed to edit shortcut.")
 		bi.printy.Debug(err.Error())
-		os.Exit(1)
+		return fmt.Errorf("Failed to edit shortcut.")
 	}
 
 	err = bi.instructionStorage.DeleteSave()
@@ -191,58 +227,65 @@ func (bi BasicInstructor) Edit() {
 	}
 	bi.printy.Info("Successfully edited shortcut.")
 	bi.printy.Debug(strings.Trim(entry, "\n"))
+	return nil
 }
 
-func (bi BasicInstructor) Reorganize() {
-	bi.checkArgs(1)
-	err := bi.instructionStorage.Reorganize()
+func (bi BasicInstructor) Reorganize() error {
+	err := bi.checkArgs(1)
 	if err != nil {
-		bi.printy.Error("Failed to reorganize file.")
-		os.Exit(1)
+		return err
 	}
+
+	err = bi.instructionStorage.Reorganize()
+	if err != nil {
+		return fmt.Errorf("Failed to reorganize file.")
+	}
+
 	bi.printy.Debug("Successfully reorganized instructions file.")
+	return nil
 }
 
-func (bi BasicInstructor) Copy() {
-	bi.checkMultiArgs(2, 3)
+func (bi BasicInstructor) Copy() error {
+	_, err := bi.checkMultiArgs(2, 3)
+	if err != nil {
+		return err
+	}
+
 	srcScope := os.Args[2]
 	var destScope string
-	var err error
-
 	srcScope, err = bi.getAbsDirLikePath(srcScope)
-
-	if srcScope == destScope {
-		bi.printy.Error("Source and destination currentScope are the same.")
-		os.Exit(1)
+	if err != nil {
+		return fmt.Errorf("Failed to resolve source scope.")
 	}
 
-	if len(os.Args) == 4 {
+	if srcScope == destScope {
+		return fmt.Errorf("Source and destination scope are the same.")
+	}
+
+	if len(os.Args) == 3 {
 		destScope, err = bi.getAbsDirPath(os.Args[3])
 		if err != nil {
 			bi.printy.Debug(err.Error())
-			bi.printy.Error(fmt.Sprintf("Destination currentScope '%s' does not exist.", os.Args[4]))
-			os.Exit(1)
+			return fmt.Errorf("Destination scope '%s' does not exist.", os.Args[3])
 		}
 	} else {
 		bi.printy.Debug("Assuming destination directory is the current working directory.")
 		destScope, err = os.Getwd()
 		if err != nil {
-			bi.printy.Error("Could not locate current working directory!")
-			os.Exit(1)
+			return fmt.Errorf("Could not locate current working directory!")
 		}
 	}
 
 	newEntries, err := bi.instructionStorage.AlterInstructionForNewEntries(srcScope, destScope)
 	if err != nil {
 		bi.printy.Debug(err.Error())
-		bi.printy.Error("Failed to copy the instructions from the old currentScope.")
-		os.Exit(1)
+		return fmt.Errorf("Failed to copy the instructions from the old scope.")
 	}
 
 	err = bi.instructionStorage.Save()
 	if err != nil {
 		bi.printy.Debug(err.Error())
-		bi.printy.Error("Unexpected situation. Failed to save ")
+		return fmt.Errorf("Unexpected situation. Failed to save.")
 	}
 
 	for _, entry := range newEntries {
@@ -255,7 +298,7 @@ func (bi BasicInstructor) Copy() {
 		}
 
 		if bi.instructionStorage.HasInstructionFor(scope, label) {
-			bi.printy.Info(fmt.Sprintf("There is already an shortcut %s in the destination currentScope %s", label, scope))
+			bi.printy.Info(fmt.Sprintf("There is already an shortcut %s in the destination scope %s", label, scope))
 			bi.printy.Info("Skipping the entry!")
 			continue
 		}
@@ -270,67 +313,85 @@ func (bi BasicInstructor) Copy() {
 	}
 
 	bi.printy.Info("Successfully copied the shortcuts.")
+	return nil
 }
 
-func (bi BasicInstructor) Execute(command string) {
+func (bi BasicInstructor) Execute(command string) error {
 	label := command
-	bi.checkLabel(label)
+	err := bi.checkLabel(label)
+	if err != nil {
+		return err
+	}
 
 	instruction, err := bi.instructionStorage.GetInstruction(bi.currentScope, label)
 	if err != nil {
-		bi.printy.Error("Shortcut does not exist.")
 		bi.printy.Debug(instruction)
-
-		os.Exit(1)
+		return fmt.Errorf("Shortcut does not exist.")
 	}
 
 	instructionRunner := runner.NewRunner(bi.printy.Level())
 	instructionRunner.Run(instruction)
+	return nil
 }
 
 func (bi BasicInstructor) Help() {
-	help(&bi.printy)
+	helpText := []string{
+		"Usage:",
+		"ins <command> <args>",
+		"",
+		"Allows the creation and usage of scope-bound shortcuts for shell instructions.",
+		"",
+		"<shortcut>      Executes a created shortcut.",
+		"add             Creates a shortcut for shell commands which is bound to the current scope.",
+		"mv              Renames a shortcut.",
+		"rename          Also renames a shortcut.",
+		"edit 			 Edits the instruction of the shortcut by a replacing it with a new one.",
+		"rm              Removes a shortcut.",
+		"list            Lists all existing shortcuts.",
+		"reorganize      Reorganizes the file in which the shortcuts and commands are stored.",
+		"",
+		"help            Prints this Help text.",
+	}
+
+	for _, line := range helpText {
+		println(line)
+	}
 }
 
-func (bi BasicInstructor) checkArgs(requiredNum int) {
+func (bi BasicInstructor) checkArgs(requiredNum int) error {
 	argsNum := len(os.Args) - 1
 	if argsNum != requiredNum {
-		bi.printy.Error("Wrong number of arguments.")
-		bi.printy.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "arguments required:", strconv.Itoa(requiredNum))
-		os.Exit(1)
+		return fmt.Errorf("Wrong number of arguments.\nArguments passed: %d arguments required: %d",
+			argsNum, requiredNum)
 	}
+	return nil
 }
 
-func (bi BasicInstructor) checkMultiArgs(lowerNum int, upperNum int) int {
+func (bi BasicInstructor) checkMultiArgs(lowerNum int, upperNum int) (int, error) {
 	argsNum := len(os.Args) - 1
 	if lowerNum > argsNum || argsNum > upperNum {
-		bi.printy.Error("Wrong number of arguments.")
-		bi.printy.Error("Arguments passed:", strconv.Itoa(argsNum)+",", "allow argument numbers:", strconv.Itoa(lowerNum), "-", strconv.Itoa(upperNum))
-		os.Exit(1)
+		return -1, fmt.Errorf("Wrong number of arguments.\nArguments passed: %d, allow argument numbers: %d", lowerNum, upperNum)
 	}
-	return argsNum
+	return argsNum, nil
 }
 
-func (bi BasicInstructor) checkLabel(label string) {
+func (bi BasicInstructor) checkLabel(label string) error {
 	if strings.Contains(label, "\n") {
-		bi.printy.Error("Invalid argument.")
-		bi.printy.Error("Shortcut name cannot contain linebreaks.")
-		os.Exit(1)
+		return fmt.Errorf("Invalid argument.\nShortcut name cannot contain linebreaks.")
 	}
 
 	if strings.Contains(label, parser.LabelInstructionDelimiter) {
-		bi.printy.Error("Invalid argument.")
-		bi.printy.Error("Shortcut name cannot contain '" + parser.LabelInstructionDelimiter + "'.")
-		os.Exit(1)
+		return fmt.Errorf("Invalid argument.\nShortcut name cannot contain '%s'",
+			parser.LabelInstructionDelimiter)
 	}
+	return nil
 }
 
-func (bi BasicInstructor) checkInstruction(instruction string) {
+func (bi BasicInstructor) checkInstruction(instruction string) error {
 	if strings.Contains(instruction, "\n") {
-		bi.printy.Error("Invalid argument.")
-		bi.printy.Error("Instruction cannot contain linebreaks.")
-		os.Exit(1)
+		return fmt.Errorf("Invalid argument.\nInstruction cannot contain linebreaks.")
 	}
+	return nil
 }
 
 func (bi BasicInstructor) getAbsDirPath(path string) (string, error)  {
@@ -364,37 +425,13 @@ func (bi BasicInstructor) getAbsDirLikePath(pseudoPath string) (string, error)  
 		return path.Clean(pseudoPath), nil
 	}
 
-	homeDir, err := os.Getwd()
+	cwd, err := os.Getwd()
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get working directory")
 	}
 
-	destPath := path.Join(homeDir, pseudoPath)
+	destPath := path.Join(cwd, pseudoPath)
 
 	return path.Clean(destPath), nil
-}
-
-func help(printy *printer.Printer) {
-	helpText := []string{
-		"Usage:",
-		"ins <command> <args>",
-		"",
-		"Allows the creation and usage of currentScope-bound shell shortcuts.",
-		"",
-		"<shortcut>      Executes a created shortcut.",
-		"add             Creates a currentScope-bound shortcut for a shell command.",
-		"mv              Renames a shortcut.",
-		"rename          Also renames a shortcut.",
-		"edit 			 Edits the instruction of the shortcut by a replacing it with a new one.",
-		"rm              Removes a shortcut.",
-		"list            Lists all existing shortcuts.",
-		"reorganize      Reorganizes the file in which the shortcuts and commands are stored.",
-		"",
-		"Help            Prints this Help text.",
-	}
-
-	for _, line := range helpText {
-		printy.Info(line)
-	}
 }

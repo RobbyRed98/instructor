@@ -1,13 +1,13 @@
 package core
 
 type Instructor interface {
-	List()
-	Add()
-	Remove()
-	Rename()
-	Edit()
-	Copy()
-	Reorganize()
-	Execute(string)
+	List() error
+	Add() error
+	Remove() error
+	Rename() error
+	Edit() error
+	Copy() error
+	Reorganize() error
+	Execute(string) error
 	Help()
 }

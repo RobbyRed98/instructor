@@ -7,7 +7,12 @@ import (
 )
 
 func main() {
-	level := printer.INFO
+	if len(os.Args) <= 1 {
+		core.BasicInstructor{}.Help()
+		os.Exit(0)
+	}
+
+	level := printer.DEBUG
 	printy := printer.NewPrinter(&level)
 
 	command := os.Args[1]
@@ -21,31 +26,37 @@ func main() {
 
 	switch command {
 	case "list":
-		instructor.List()
+		err = instructor.List()
 
 	case "add":
-		instructor.Add()
+		err = instructor.Add()
 
 	case "rm":
-		instructor.Remove()
+		err = instructor.Remove()
 
 	case "mv", "rename":
-		instructor.Rename()
+		err = instructor.Rename()
 
 	case "edit":
-		instructor.Edit()
+		err = instructor.Edit()
 
 	case "copy":
-		instructor.Copy()
+		err = instructor.Copy()
 
 	case "reorganize":
-		instructor.Reorganize()
+		err = instructor.Reorganize()
 
-	case "Help":
+	case "help":
 		instructor.Help()
+		err = nil
 
 	default:
-		instructor.Execute(command)
+		err = instructor.Execute(command)
+	}
+
+	if err != nil {
+		printy.Error(err.Error())
+		os.Exit(1)
 	}
 }
 
