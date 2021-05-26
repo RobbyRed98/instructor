@@ -3,11 +3,12 @@
 package runner
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 )
 
-func (r *Runner) Run(instruction string) {
+func (r *Runner) Run(instruction string) error {
 	cmd := exec.Command("powershell", instruction)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -16,7 +17,7 @@ func (r *Runner) Run(instruction string) {
 	r.printer.Debug("Running:", instruction)
 	err := cmd.Run()
 	if err != nil {
-		r.printer.Debug("Run failed.")
-		os.Exit(1)
+		fmt.Errorf("Run failed: %s", instruction)
 	}
+	return nil
 }
