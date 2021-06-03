@@ -2,6 +2,11 @@
 
 package core
 
+import (
+	"fmt"
+	"github.com/RobbyRed98/instructor/runner"
+)
+
 func (bi BasicInstructor) Execute(command string) error {
 	label := command
 	err := bi.checkLabel(label)
