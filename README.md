@@ -49,3 +49,12 @@ Lists existing shortcuts.
 ```bash
 ins list
 ```
+
+### Options
+The options `-b` and `--bash ` allows instructions to be executed in bash mode. 
+This happens by running an instruction like `bash -c [instruction]`.
+Warning this mode is **not stable** it is just experimental. 
+The option can only be used in combination with a shortcut.
+```bash
+ins <shortcut> --bash
+```

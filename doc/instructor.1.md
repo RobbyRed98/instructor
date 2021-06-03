@@ -1,12 +1,12 @@
-% instructor(1) 1.1.1
+% instructor(1) 2.0.0
 % RobbyRed98
-% April 2021
+% June 2021
 
 # NAME
 instructor - a small cli-tool to add scope bound shortcuts for regular tasks/commands. 
 
 # SYNOPSIS
-**ins** [shortcut]
+**ins** [shortcut] [option]
 
 **ins** [command] [args]
 
@@ -22,6 +22,9 @@ Cli-tool to create shortcuts for specific shell commands. The commands are scope
 
 **ins** mv [shortcut-old] [shortcut-new]
 : Renames replaces the old shortcut name by the new shortcut name.
+
+**ins** rename [shortcut-old] [shortcut-new]
+: Equivalent to the mv command.
 
 **ins** edit [shortcut] [instruction-new]
 : Edits the instruction of the shortcut by a replacing it with a new one.
@@ -49,8 +52,14 @@ Cli-tool to create shortcuts for specific shell commands. The commands are scope
 **ins** mv test new-test
 : Renames the test shortcut to new-test.
 
+**ins** edit test "echo 'test2'"
+: Alters the instruction of the test shotcut from "echo 'test'" to "echo 'test1'".
+
 **ins** rm test
 : Deletes the test shortcut.
+
+**ins** test --bash
+: Run the command for the test shortcut in bash mode.
 
 # COPYRIGHT
 Copyright (c) 2021 RobbyRed98 | MIT License
