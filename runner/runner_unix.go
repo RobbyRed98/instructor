@@ -25,10 +25,10 @@ func (r *Runner) Run(instruction string) error {
 	return syscall.Exec(commandPath, instructionFragments, os.Environ())
 }
 
-func (r *Runner) ShellRun(instruction string) error {
-	if _, err := os.Stat("/bin/sh"); err == nil {
-		return fmt.Errorf("Failed to find the shell: /bin/sh")
+func (r *Runner) BashRun(instruction string) error {
+	if _, err := os.Stat("/bin/bash"); err != nil {
+		return fmt.Errorf("Failed to find the shell: /bin/bash")
 	}
-	r.printer.Debug("Running:", "sh", "-c", "\"" + instruction + "\"")
-	return syscall.Exec("/bin/sh", []string{"sh", "-c" , instruction}, os.Environ())
+	r.printer.Debug("Running:", "bash", "-c", "\"" + instruction + "\"")
+	return syscall.Exec("/bin/bash", []string{"bash", "-c" , instruction}, os.Environ())
 }

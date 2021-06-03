@@ -35,6 +35,10 @@ Cli-tool to create shortcuts for specific shell commands. The commands are scope
 **ins** list [all]
 : Lists existing shortcuts in the current scope and if all is passed every existing shortcut.
 
+# OPTIONS
+**-b**, **--bash** _(experimental)_
+: Executes instructions in bash mode. This happens by running an instruction like `bash -c [instruction]`. Warning this mode is **not stable** it is just experimental.
+
 # EXAMPLE
 **ins** test
 : Run the command for the test shortcut.

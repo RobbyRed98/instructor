@@ -14,8 +14,8 @@ func (bi BasicInstructor) Execute(command string) error {
 		return err
 	}
 
-	if argsNum == 2 && !(os.Args[1] == "-s" || os.Args[1] == "--shell") {
-		return fmt.Errorf("The passed flag is unknown: " + os.Args[1])
+	if argsNum == 2 && !(os.Args[2] == "-b" || os.Args[2] == "--bash") {
+		return fmt.Errorf("The passed flag is unknown: " + os.Args[2])
 	}
 
 	label := command
@@ -33,8 +33,8 @@ func (bi BasicInstructor) Execute(command string) error {
 	instructionRunner := runner.NewRunner(bi.printy.Level())
 	if argsNum == 1 {
 		return instructionRunner.Run(instruction)
-	} else if argsNum != 2 {
-		return instructionRunner.ShellRun(instruction)
+	} else if argsNum == 2 {
+		return instructionRunner.BashRun(instruction)
 	}
 	return fmt.Errorf("Unexpected situation: No appropriate runner found! That should not happen!")
 }
