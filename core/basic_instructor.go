@@ -244,6 +244,7 @@ func (bi BasicInstructor) Reorganize() error {
 	return nil
 }
 
+// Copy TODO make the currently hidden/broken command a useful import command only 2 args
 func (bi BasicInstructor) Copy() error {
 	_, err := bi.checkMultiArgs(2, 3)
 	if err != nil {
@@ -262,10 +263,10 @@ func (bi BasicInstructor) Copy() error {
 	}
 
 	if len(os.Args) == 3 {
-		destScope, err = bi.getAbsDirPath(os.Args[3])
+		destScope, err = bi.getAbsDirPath(os.Args[2])
 		if err != nil {
 			bi.printy.Debug(err.Error())
-			return fmt.Errorf("Destination scope '%s' does not exist.", os.Args[3])
+			return fmt.Errorf("Destination scope '%s' does not exist.", os.Args[2])
 		}
 	} else {
 		bi.printy.Debug("Assuming destination directory is the current working directory.")
@@ -296,13 +297,13 @@ func (bi BasicInstructor) Copy() error {
 			continue
 		}
 
-		if bi.instructionStorage.HasInstructionFor(scope, label) {
+		if bi.instructionStorage.HasInstructionFor(destScope, label) {
 			bi.printy.Info(fmt.Sprintf("There is already an shortcut %s in the destination scope %s", label, scope))
 			bi.printy.Info("Skipping the entry!")
 			continue
 		}
 
-		_, err = bi.instructionStorage.AddInstruction(scope, label, instruction)
+		_, err = bi.instructionStorage.AddInstruction(destScope, label, instruction)
 		if err != nil {
 			bi.printy.Debug(err.Error())
 			bi.printy.Error(fmt.Sprintf("Failed to add the shortcut (%s|%s)->%s.", scope, label, instruction))
