@@ -40,9 +40,6 @@ func main() {
 	case "edit":
 		err = instructor.Edit()
 
-	case "copy":
-		err = instructor.Copy()
-
 	case "reorganize":
 		err = instructor.Reorganize()
 
