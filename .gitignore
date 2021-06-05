@@ -8,3 +8,5 @@ doc/*.1
 doc/*.1.gz
 .idea/*
 dist
+
+!completions/instructor-completion.bash
