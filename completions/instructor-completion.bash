@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-_ins_completions() {
+__ins_completions() {
   INSTRUCTIONS=$(grep "${PWD}|" ~/.instructions | cut -d '|' -f2- | cut -d '-' -f1)
   if [ "${#COMP_WORDS[@]}" == "2" ]; then
     COMMANDS="add edit list mv rm rename reorganize help"
@@ -20,4 +20,4 @@ _ins_completions() {
   fi
 }
 
-complete -F _ins_completions ins
+complete -F __ins_completions ins
