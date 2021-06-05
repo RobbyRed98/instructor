@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 __ins_completions() {
   INSTRUCTIONS=$(grep "${PWD}|" ~/.instructions | cut -d '|' -f2- | cut -d '-' -f1)
   if [ "${#COMP_WORDS[@]}" == "2" ]; then

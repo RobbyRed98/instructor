@@ -26,7 +26,7 @@ builds:
 nfpms:
   -
     maintainer: RobbyRed98 <r.roth@mail.de>
-    release: 1.0.1
+    release: 1
     formats:
       - deb
     license: MIT
@@ -47,3 +47,6 @@ nfpms:
 
       - src: doc/instructor.1.gz
         dst: /usr/share/man/man1/instructor.1.gz
+
+      - src: completions/instructor-completion.bash
+        dst: /usr/share/bash-completion/completions/ins
