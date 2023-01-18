@@ -16,13 +16,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.19
       - name: Download go dependencies
         run : go mod download
       - name: Set version
         run : git tag "$(cat version)" || echo "Tag already exists"
       - name: GoReleaser Action
-        uses: goreleaser/goreleaser-action@v2.1.1
+        uses: goreleaser/goreleaser-action@v4
         with:
           args: release --skip-publish --rm-dist
       - name: Remove obsolete files in dist dir
