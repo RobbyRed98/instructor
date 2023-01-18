@@ -29,6 +29,8 @@ nfpms:
     release: 1
     formats:
       - deb
+      - rpm
+      - apk
     license: MIT
     section: default
     priority: optional
