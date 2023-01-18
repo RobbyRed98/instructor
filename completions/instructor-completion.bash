@@ -1,5 +1,9 @@
 __ins_completions() {
-  INSTRUCTIONS=$(grep "${PWD}|" ~/.instructions | cut -d '|' -f2- | cut -d '-' -f1)
+  declare -a INSTRUCTIONS
+  if test -f .instructions; then
+    INSTRUCTIONS=$(grep "${PWD}|" ~/.instructions | cut -d '|' -f2- | cut -d '-' -f1)
+  fi
+ 
   if [ "${#COMP_WORDS[@]}" == "2" ]; then
     COMMANDS="add edit list mv rm rename reorganize help"
     WORDS="$COMMANDS $INSTRUCTIONS"
